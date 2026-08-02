@@ -1,0 +1,13 @@
+defaults:
+  - /dataset/dataloader@train.loader: default
+  - /dataset/dataloader@val.loader: default
+
+train:
+  name: BMNIST
+  dataset:
+    _target_: mattg.datasets.BMNIST
+
+val:
+  name: BMNIST
+  dataset:
+    _target_: mattg.datasets.BMNIST

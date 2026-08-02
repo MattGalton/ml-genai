@@ -1,0 +1,5 @@
+name: FVSBN
+target:
+  _target_: mattg.models.FVSBN
+  in_features: 784
+  out_features: 784

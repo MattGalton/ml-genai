@@ -1,0 +1,6 @@
+hydra:
+  run:
+    dir: .
+  job:
+    chdir: false
+  output_subdir: null

@@ -1,0 +1,7 @@
+trainer:
+  _target_: lightning.Trainer
+  precision: 32
+  benchmark: true
+  max_epochs: 10
+  accelerator: mps
+  log_every_n_steps: 2

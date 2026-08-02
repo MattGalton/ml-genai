@@ -1,0 +1,14 @@
+import torch
+from mattg.models.masked_linear import MaskedLinear
+
+
+class FVSBN(MaskedLinear):
+    """Fully Visible Sigmoid Belief Network"""
+    def __init__(self, in_features, out_features):
+        super().__init__(in_features, out_features, mask=FVSBN.build_mask(in_features, out_features))
+
+    @staticmethod
+    def build_mask(in_features, out_features) -> torch.Tensor:
+        mask = torch.ones(out_features, in_features)
+        mask = torch.tril(mask, diagonal=-1)
+        return mask

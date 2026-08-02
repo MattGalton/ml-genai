@@ -1,0 +1,8 @@
+defaults:
+  - /dataset: bmnist
+  - /model: fvsbn
+  - /optimizer: adam
+  - /hydra@_global_: default
+  - /logging@_global_: default
+  - /trainer@_global_: default
+  - _self_
