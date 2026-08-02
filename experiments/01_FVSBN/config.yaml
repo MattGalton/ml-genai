@@ -1,0 +1,6 @@
+defaults:
+  - /train/default@_global_
+  - override /model: fvsbn
+  - override /optimizer: adam
+  - override /dataset: bmnist
+  - _self_
