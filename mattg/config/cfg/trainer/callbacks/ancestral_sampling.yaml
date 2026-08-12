@@ -1,0 +1,4 @@
+- _target_: mattg.training.callbacks.AncestralSamplingCallback
+  sample_every_n_epochs: 5
+  output_dir: samples
+  num_samples: 32
