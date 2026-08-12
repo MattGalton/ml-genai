@@ -1,6 +1,6 @@
 hydra:
   run:
-    dir: .
+    dir: outputs/${logging.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
   job:
-    chdir: false
-  output_subdir: null
+    chdir: true
+  output_subdir: .hydra
