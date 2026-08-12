@@ -14,6 +14,8 @@ dependencies = [
     "lightning>=2.6.5",
     "matplotlib>=3.11.0",
     "omegaconf>=2.3.1",
+    "pandas>=3.0.5",
+    "pandas-stubs~=3.0.5",
     "pre-commit",
     "pydantic>=2.13.4",
     "pytest",
@@ -21,6 +23,7 @@ dependencies = [
     "ruff",
     "torch>=2.12.1",
     "torchaudio>=2.11.0",
+    "torchmetrics>=1.9.0",
     "torchvision>=0.27.1",
 ]
 
