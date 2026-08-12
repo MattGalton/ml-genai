@@ -1,9 +1,12 @@
-from typing import List
+from typing import List, Tuple
 
+import lightning as L
 import torch
 import torch.nn as nn
 
+from mattg.models.factory import ModelFactory
 from mattg.models.masked_linear import MaskedLinear
+from mattg.models.utils.masks import make_made_masks, make_generator
 
 
 class MADE(nn.Module):
@@ -28,3 +31,37 @@ class MADE(nn.Module):
             raise ValueError(f"Expected {len(self.layers)} masks, got {len(masks)}")
         for layer, mask in zip(self.layers, masks):
             layer.update_mask(mask)
+
+
+class MADEFactory(ModelFactory):
+    def __init__(self, layer_sizes: List[int], seed: int = 42, mask_update_frequency: int = 10):
+        super().__init__()
+        self.layer_sizes = layer_sizes
+        self.seed = seed
+        self.generator = make_generator(seed)
+        self.masks = make_made_masks(self.layer_sizes, self.generator)
+        self.mask_update_frequency = mask_update_frequency
+
+    def create(self) -> Tuple[nn.Module, List[L.Callback]]:
+        model = MADE(self.layer_sizes, make_made_masks(self.layer_sizes, self.generator))
+        callbacks = [UpdateMaskCallback(self.layer_sizes, self.seed, self.mask_update_frequency)]
+        return model, callbacks
+
+
+class UpdateMaskCallback(L.Callback):
+    def __init__(self, layer_sizes, seed, update_frequency):
+        super().__init__()
+        self.count = 0
+        self.update_frequency = update_frequency
+        self.layer_sizes = layer_sizes
+        self.seed = seed
+
+    def _create_masks(self):
+        gen = make_generator(self.seed + self.count)
+        return make_made_masks(self.layer_sizes, gen)
+
+    def on_train_epoch_end(self, trainer, pl_module):
+        self.count += 1
+        if self.count % self.update_frequency != 0:
+            return
+        pl_module.model.update_masks(self._create_masks())
