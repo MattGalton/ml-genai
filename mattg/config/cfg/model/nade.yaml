@@ -1,0 +1,5 @@
+name: NADE
+target:
+  _target_: mattg.models.NADE
+  n_visible: 784
+  n_hidden: 392
