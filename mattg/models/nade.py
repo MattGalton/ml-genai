@@ -16,5 +16,5 @@ class NADE(nn.Module):
         ])
 
     def forward(self, x):
-        x = torch.sigmoid(self.layers[0](x))
+        x = torch.relu(self.layers[0](x))
         return self.layers[1](x)
