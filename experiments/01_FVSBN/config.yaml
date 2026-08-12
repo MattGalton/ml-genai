@@ -4,3 +4,23 @@ defaults:
   - override /optimizer: adam
   - override /dataset: bmnist
   - _self_
+
+optimizer:
+  lr: 0.001
+trainer:
+  max_epochs: 50
+  callbacks:
+    - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+      dirpath: checkpoints
+      filename: "model-{epoch:02d}-{val_loss:.2f}"
+      monitor: val_loss
+      mode: min
+      save_top_k: 3
+      save_last: true
+      every_n_epochs: 1
+    - _target_: mattg.training.callbacks.ReportingCallback
+      dir: .
+    - _target_: mattg.training.callbacks.AncestralSamplingCallback
+      sample_every_n_epochs: 5
+      output_dir: samples
+      num_samples: 32
