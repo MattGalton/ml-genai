@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+import yaml
 
 import lightning as L
 import torch
@@ -38,19 +39,20 @@ class ReportingCallback(L.Callback):
     def __init__(
         self,
         dir: str | Path = "outputs",
-        cfg: DictConfig | None = None,
+        cfg: DictConfig | None = None
     ):
         super().__init__()
         self.cfg = cfg
         self.dirs = OutputDirectoryLayout(Path(dir))
         self._processed_samples = set()
 
-    def on_train_end(self, trainer: L.Trainer, pl_module: L.LightningModule):
+    def on_fit_end(self, trainer: L.Trainer, pl_module: L.LightningModule):
         if not self.dirs.root.exists():
             return
 
-        ReportingCallback.process_metrics(self.dirs.root, self.dirs.plots)
+        self.process_metrics(self.dirs.root, self.dirs.plots)
         self.process_samples(self.dirs.samples, self.dirs.plots)
+        self.write_results(trainer, pl_module)
 
     def on_train_epoch_end(self, trainer: L.Trainer, pl_module: L.LightningModule):
         """Plot any new samples that have been created during this epoch."""
@@ -181,3 +183,204 @@ class ReportingCallback(L.Callback):
             out_path = output_plots_dir / f"{col}.png"
             plt.savefig(out_path)
             plt.close()
+
+    def write_results(
+        self,
+        trainer: L.Trainer,
+        pl_module: L.LightningModule,
+    ):
+        """
+        Write a concise, presentation-friendly summary of the experiment.
+
+        The resulting results.yaml is intended to be consumed by the
+        experiment publisher as well as being useful to a human inspecting
+        the run directory.
+        """
+
+        def to_python(value):
+            """Convert OmegaConf / Torch values into YAML-safe Python values."""
+            if isinstance(value, torch.Tensor):
+                if value.numel() == 1:
+                    return value.detach().cpu().item()
+                return value.detach().cpu().tolist()
+
+            if isinstance(value, Path):
+                return str(value)
+
+            if isinstance(value, dict):
+                return {str(k): to_python(v) for k, v in value.items()}
+
+            if isinstance(value, (list, tuple)):
+                return [to_python(v) for v in value]
+
+            return value
+
+        def config_section(name: str):
+            """
+            Extract a useful section from the Hydra config without dumping
+            the entire DictConfig / Hydra internals.
+            """
+            if self.cfg is None or name not in self.cfg:
+                return None
+
+            value = self.cfg[name]
+
+            # OmegaConf DictConfig/ListConfig -> regular Python containers.
+            try:
+                from omegaconf import OmegaConf
+
+                value = OmegaConf.to_container(
+                    value,
+                    resolve=True,
+                )
+            except Exception:
+                pass
+
+            return to_python(value)
+
+        # ------------------------------------------------------------------
+        # Model
+        # ------------------------------------------------------------------
+
+        model = getattr(pl_module, "model", pl_module)
+        metadata = getattr(model, "metadata", {})
+        model_results = {
+            **metadata,
+            "class": model.__class__.__name__,
+            "parameters": sum(p.numel() for p in model.parameters()),
+            "trainable_parameters": sum(
+                p.numel() for p in model.parameters() if p.requires_grad
+            ),
+        }
+
+        # ------------------------------------------------------------------
+        # Training
+        # ------------------------------------------------------------------
+
+        training_results = {
+            "epochs": trainer.current_epoch + 1,
+            "global_step": trainer.global_step,
+        }
+
+        # ------------------------------------------------------------------
+        # Final metrics
+        #
+        # callback_metrics contains the epoch-aggregated Lightning metrics
+        # after fit has completed.
+        # ------------------------------------------------------------------
+
+        final_metrics = {}
+
+        for key, value in trainer.callback_metrics.items():
+            if isinstance(value, torch.Tensor):
+                if value.numel() != 1:
+                    continue
+
+                value = value.detach().cpu().item()
+
+            if isinstance(value, (int, float)):
+                final_metrics[key] = value
+
+        # ------------------------------------------------------------------
+        # Best validation result
+        #
+        # ModelCheckpoint exposes the best score and best model path.
+        # ------------------------------------------------------------------
+
+        best_results = {}
+
+        for callback in trainer.callbacks:
+            if not isinstance(
+                callback,
+                L.pytorch.callbacks.ModelCheckpoint,
+            ):
+                continue
+
+            if callback.best_model_score is not None:
+                score = callback.best_model_score
+
+                if isinstance(score, torch.Tensor):
+                    score = score.detach().cpu().item()
+
+                best_results["metric"] = callback.monitor
+                best_results["value"] = score
+
+            if callback.best_model_path:
+                best_path = Path(callback.best_model_path)
+
+                best_results["checkpoint"] = best_path.name
+
+                # Lightning checkpoint filenames usually contain the epoch.
+                if callback.best_model_path:
+                    try:
+                        best_results["epoch"] = (
+                            trainer.checkpoint_callback._parse_ckpt_path(
+                                callback.best_model_path
+                            ).get("epoch")
+                        )
+                    except Exception:
+                        pass
+
+            # There is normally only one ModelCheckpoint.
+            break
+
+        # ------------------------------------------------------------------
+        # Configuration
+        #
+        # Include the useful experiment-level sections rather than all of
+        # Hydra's internal/default metadata.
+        # ------------------------------------------------------------------
+
+        config_results = {}
+
+        for section in (
+            "dataset",
+            "optimizer",
+            "trainer",
+            "model",
+        ):
+            value = config_section(section)
+
+            if value is not None:
+                config_results[section] = value
+
+        # ------------------------------------------------------------------
+        # Assemble
+        # ------------------------------------------------------------------
+
+        results = {
+            "model": model_results,
+            "training": training_results,
+            "metrics": {
+                "final": final_metrics,
+            },
+        }
+
+        if best_results:
+            results["metrics"]["best"] = best_results
+
+        if config_results:
+            results["config"] = config_results
+
+
+        # ------------------------------------------------------------------
+        # Write
+        # ------------------------------------------------------------------
+
+        self.dirs.root.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        output_path = self.dirs.root / "results.yaml"
+
+        with output_path.open("w", encoding="utf-8") as f:
+            yaml.safe_dump(
+                to_python(results),
+                f,
+                sort_keys=False,
+                default_flow_style=False,
+                allow_unicode=True,
+            )
+
+        print(f"Wrote experiment results to {output_path}")
