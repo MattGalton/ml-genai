@@ -10,6 +10,7 @@ __pycache__/
 .jupyter
 
 outputs/
+.hf_publish
 
 # Distribution / packaging
 .Python

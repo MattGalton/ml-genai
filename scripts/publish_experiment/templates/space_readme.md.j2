@@ -1,0 +1,24 @@
+---
+title: {{ title }} — ML GenAI Experiments
+colorFrom: blue
+colorTo: purple
+sdk: static
+app_file: index.html
+fullWidth: true
+short_description: Interactive experiment results for {{ title }}.
+{% if dataset_repo %}
+datasets:
+- {{ dataset_repo }}
+{% endif %}
+---
+
+# {{ title }}
+
+Interactive experiment results generated from the
+[`ml-genai`](https://github.com/MattGalton/ml-genai) project.
+
+This Space is generated automatically from the experiment artifacts.
+
+The experiment results are recorded in `results.yaml`, while the
+experiment description and architecture are documented separately
+in the experiment README.

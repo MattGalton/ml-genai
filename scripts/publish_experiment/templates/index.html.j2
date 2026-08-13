@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>{{ title }} — ML GenAI</title>
+
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [
+                    ['\\(', '\\)'],
+                    ['$', '$']
+                ],
+                displayMath: [
+                    ['\\[', '\\]'],
+                    ['$$', '$$']
+                ]
+            }
+        };
+    </script>
+
+    <script
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+<main>
+
+<header>
+
+    <div class="eyebrow">
+        ML GenAI · Experiment
+    </div>
+
+    <h1>
+        {{ title }}
+    </h1>
+
+    <div class="subtitle">
+        Interactive visualisation of training progress,
+        validation metrics, generated samples, and
+        experiment configuration.
+    </div>
+
+</header>
+
+
+<section>
+
+    <h2>Results</h2>
+
+    {% for section_name, section_value in results.items() %}
+
+        <div class="result-section">
+
+            <h3>
+                {{ section_name|replace("_", " ")|title }}
+            </h3>
+
+            {% if section_value is mapping %}
+
+                {% set cards = [] %}
+                {% set subsections = [] %}
+
+                {% for key, value in section_value.items() %}
+
+                    {% if value is mapping %}
+
+                        {% set _ = subsections.append((key, value)) %}
+
+                    {% else %}
+
+                        {% set _ = cards.append((key, value)) %}
+
+                    {% endif %}
+
+                {% endfor %}
+
+
+                {% if cards %}
+
+                    <div class="metric-grid">
+
+                        {% for key, value in cards %}
+
+                            <div class="metric-card">
+
+                                <div class="metric-label">
+                                    {{ key|replace("_", " ")|title }}
+                                </div>
+
+                                <div class="metric-value">
+                                    {{ value | format_value }}
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                {% for key, value in subsections %}
+
+                    <div class="result-subsection">
+
+                        <h4>
+                            {{ key|replace("_", " ")|title }}
+                        </h4>
+
+                        <div class="metric-grid">
+
+                            {% for child_key, child_value in value.items() %}
+
+                                {% if child_value is mapping %}
+
+                                    <div class="result-subsection">
+
+                                        <h5>
+                                            {{ child_key|replace("_", " ")|title }}
+                                        </h5>
+
+                                        <div class="metric-grid">
+
+                                            {% for leaf_key, leaf_value in child_value.items() %}
+
+                                                <div class="metric-card">
+
+                                                    <div class="metric-label">
+                                                        {{ leaf_key|replace("_", " ")|title }}
+                                                    </div>
+
+                                                    <div class="metric-value">
+                                                        {% if leaf_value is none %}
+                                                        {% elif leaf_value is boolean %}
+                                                            {{ "Yes" if leaf_value else "No" }}
+                                                        {% elif leaf_value is number %}
+                                                            {{ "%.4g"|format(leaf_value) }}
+                                                        {% elif leaf_value is sequence and leaf_value is not string %}
+                                                            {{ leaf_value|join(", ") }}
+                                                        {% elif leaf_value is mapping %}
+                                                            {{ leaf_value|tojson }}
+                                                        {% else %}
+                                                            {{ leaf_value }}
+                                                        {% endif %}
+                                                    </div>
+
+                                                </div>
+
+                                            {% endfor %}
+
+                                        </div>
+
+                                    </div>
+
+                                {% else %}
+
+                                    <div class="metric-card">
+
+                                        <div class="metric-label">
+                                            {{ child_key|replace("_", " ")|title }}
+                                        </div>
+
+                                        <div class="metric-value">
+                                            {% if child_value is none %}
+                                            {% elif child_value is boolean %}
+                                                {{ "Yes" if child_value else "No" }}
+                                            {% elif child_value is number %}
+                                                {{ "%.4g"|format(child_value) }}
+                                            {% elif child_value is sequence and child_value is not string %}
+                                                {{ child_value|join(", ") }}
+                                            {% else %}
+                                                {{ child_value }}
+                                            {% endif %}
+                                        </div>
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="metric-grid">
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            {{ section_name|replace("_", " ")|title }}
+                        </div>
+
+                        <div class="metric-value">
+                            {{ section_value }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    {% endfor %}
+
+</section>
+
+
+<section>
+
+    <h2>Architecture & experiment</h2>
+
+    <div class="prose">
+
+        {% if custom_html %}
+            {{ custom_html|safe }}
+        {% else %}
+            <p>
+                Add an experiment README to describe the
+                architecture and experiment.
+            </p>
+        {% endif %}
+
+    </div>
+
+</section>
+
+
+<section>
+
+    <h2>Generated samples</h2>
+
+    <div class="viewer">
+
+        <img
+            id="sample-image"
+            class="viewer-image"
+            src="{{ initial_sample }}"
+            alt="Generated samples at epoch {{ initial_epoch }}"
+        >
+
+        <div class="viewer-controls">
+
+            <div class="epoch-line">
+
+                <div>
+
+                    <div class="epoch-caption">
+                        Epoch
+                    </div>
+
+                    <div
+                        id="epoch-number"
+                        class="epoch-number"
+                    >
+                        {{ initial_epoch }}
+                    </div>
+
+                </div>
+
+                <div
+                    id="epoch-metrics"
+                    class="epoch-caption"
+                ></div>
+
+            </div>
+
+
+            <input
+                id="epoch-slider"
+                type="range"
+                min="0"
+                max="{{ max_slider }}"
+                value="0"
+                step="1"
+            >
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section>
+
+    <h2>Training curves</h2>
+
+    <div class="curves">
+
+        {% if curves %}
+
+            {% for filename, label in curves %}
+
+                <figure>
+
+                    <figcaption>
+                        {{ label }}
+                    </figcaption>
+
+                    <img
+                        src="images/{{ filename }}"
+                        alt="{{ label }}"
+                    >
+
+                </figure>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p class="muted">
+                No training curves were generated.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+
+<section>
+
+    <h2>Metrics</h2>
+
+    <div style="overflow-x:auto">
+
+        <table class="data-table">
+
+            <thead>
+                <tr id="metrics-head"></tr>
+            </thead>
+
+            <tbody id="metrics-body"></tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+
+<footer>
+
+    Generated from the
+
+    <a
+        href="https://github.com/MattGalton/ml-genai"
+        target="_blank"
+        rel="noopener"
+    >
+        ml-genai
+    </a>
+
+    repository.
+
+</footer>
+
+
+</main>
+
+
+<script>
+    const samples = {{ samples|tojson }};
+    const metrics = {{ metrics|tojson }};
+</script>
+
+<script src="viewer.js"></script>
+
+</body>
+
+</html>
