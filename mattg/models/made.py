@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 
 import lightning as L
 import torch
@@ -42,10 +42,19 @@ class MADEFactory(ModelFactory):
         self.masks = make_made_masks(self.layer_sizes, self.generator)
         self.mask_update_frequency = mask_update_frequency
 
-    def create(self) -> Tuple[nn.Module, List[L.Callback]]:
+    def _create(self) -> Tuple[nn.Module, List[L.Callback]]:
         model = MADE(self.layer_sizes, make_made_masks(self.layer_sizes, self.generator))
         callbacks = [UpdateMaskCallback(self.layer_sizes, self.seed, self.mask_update_frequency)]
         return model, callbacks
+
+    def _metadata(self) -> Dict[Any, Any]:
+        architecture = ' -> '.join(map(lambda i : str(i), self.layer_sizes))
+        return {
+            "name": "MADE",
+            "description": "Masked Autoencoder for Distribution Estimation",
+            "architecture": architecture,
+            "mask_update_frequency": self.mask_update_frequency
+        }
 
 
 class UpdateMaskCallback(L.Callback):

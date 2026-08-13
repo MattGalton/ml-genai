@@ -1,5 +1,5 @@
 name: NADE
 target:
-  _target_: mattg.models.NADE
+  _target_: mattg.models.NADEFactory
   n_visible: 784
-  n_hidden: 392
+  n_hidden: 1024
