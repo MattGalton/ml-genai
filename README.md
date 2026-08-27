@@ -1,16 +1,29 @@
 # This Repository
 
-## Introduction
+In this repository I am exploring the foundations of generative AI and implementing some ideas from scratch.
 
-This repository is a bit of fun, following Stanford's CS236 [course](https://www.youtube.com/watch?v=XZ0PMRWXBEU&list=PLoROMvodv4rPOWA-omMM6STXaWW4FvJT8)
-on "Deep Generative Models".
+I'm mainly following [Stanford's CS236: Deep Generative Models](https://www.youtube.com/watch?v=XZ0PMRWXBEU&list=PLoROMvodv4rPOWA-omMM6STXaWW4FvJT8), 
+along with papers and other resources as I go.
+
+Please note that my focus is on understanding how the models work, rather than optimising for state-of-the-art sample quality!
 
 ## Technologies Used
 
 * PyTorch;
+* PyTorch Lightning;
 * hydra; 
 * hugging face; and
 * the usual suspects (matplotlib, numpy, pytest, ...).
+
+# Datasets
+
+I am going to use very simple datasets so I can focus on the maths (and to be kind to my Mac).
+This way, when the world is run by machines, I will be looked upon favourably.
+
+For example, I'll use datasets such as 
+* binarised MNIST;
+* characters from a finite alphabet (e.g. {'h', 'e', 'l', 'o'));
+* words from a finite vocabulary (e.g. Wikipedia articles).
 
 # Generative AI
 
@@ -71,16 +84,21 @@ Note that sampling cannot be performed for all
 variables independently in a single step: each variable depends on the samples
 generated before it.
 
-
 # Experiments
 
 ## 01 Fully Visible Sigmoid Belief Network (FVSBN)
+
+A simple autoregressive neural density estimator.
 
 **[→ View the report](https://huggingface.co/spaces/MattGalton/ml-genai-01-fvsbn)**
 
 ![Generated Samples for FVSBN model](./docs/images/01_FVSBN_preview.png)
 
 ## 02 Neural Autoregressive Density Estimation (NADE)
+
+n implementation of NADE, 
+which introduces parameter sharing to make autoregressive 
+density estimation more efficient.
 
 **[→ View the report](https://huggingface.co/spaces/MattGalton/ml-genai-02-nade)**
 
