@@ -5,6 +5,8 @@ from omegaconf import MISSING
 from dataclasses import dataclass, field
 from typing import Optional
 
+from mattg.datasets.data_spec import DataSpec
+
 
 @dataclass
 class DataLoaderConfig:
@@ -27,16 +29,20 @@ class SingleDatasetConfig:
 
 @dataclass
 class DatasetConfig:
+    data_spec: dict = None
     train: SingleDatasetConfig = None
     val: Optional[SingleDatasetConfig] = None
 
 
 class DatasetLoader:
     @staticmethod
-    def load(cfg: DatasetConfig) -> tuple[torch.utils.data.DataLoader, Optional[torch.utils.data.DataLoader]]:
+    def load(cfg: DatasetConfig) -> tuple[torch.utils.data.DataLoader, Optional[torch.utils.data.DataLoader], DataSpec]:
         train_dataset = DatasetLoader._load_single(cfg.train, train=True)
         val_dataset = DatasetLoader._load_single(cfg.val, train=False) if cfg.val else None
-        return train_dataset, val_dataset
+        data_spec = instantiate(cfg.data_spec) if cfg.data_spec else train_dataset.dataset
+        if not isinstance(data_spec, DataSpec):
+            raise TypeError("dataset.data_spec must instantiate a DataSpec")
+        return train_dataset, val_dataset, data_spec
 
     @staticmethod
     def _load_single(cfg: SingleDatasetConfig, train: bool) -> torch.utils.data.DataLoader:

@@ -21,9 +21,14 @@ def read_metrics(path: Path) -> list[dict[str, Any]]:
                     continue
 
                 try:
-                    converted[key] = float(value)
+                    converted_value = float(value)
                 except ValueError:
-                    converted[key] = value
+                    converted_value = value
+
+                if key == "epoch" and isinstance(converted_value, float):
+                    converted_value += 1
+
+                converted[key] = converted_value
 
             rows.append(converted)
 

@@ -1,6 +1,7 @@
 import torch
 
-from mattg.models.factory import ModelFactory
+from mattg.conditioner import NoConditioner
+from mattg.models.factory import ModelFactory, ModelBundle
 from mattg.models.masked_linear import MaskedLinear
 
 
@@ -22,8 +23,11 @@ class FVSBNFactory(ModelFactory):
         self.in_features = in_features
         self.out_features = out_features
 
-    def _create(self):
-        return FVSBN(self.in_features, self.out_features), []
+    def _create(self, data_spec=None):
+        return ModelBundle(
+            model=FVSBN(self.in_features, self.out_features),
+            conditioner=NoConditioner(),
+            callbacks=[])
 
     def _metadata(self):
         return {

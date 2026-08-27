@@ -66,11 +66,15 @@ def make_made_conditional_masks(layer_sizes: List[int], num_classes: int, genera
     if layer_sizes[0] < num_classes:
         raise ValueError("input size must be at least num_classes")
 
-    masks = make_made_masks(layer_sizes, generator)
-    # Allow label inputs to reach every hidden unit in the first layer.
-    # The Linear layer does Ax+b, where x has size i. This means A has size o x i.
-    # Therefore, each row of the mask determines what input features can influence the feature in the output layer.
-    # To make sure that ALL output features are able to be influenced by the class input,
-    # we must set the final num_classes columns to 1.0 for the first mask.
-    masks[0][:, -num_classes:] = 1.0
+    data_dim = layer_sizes[0] - num_classes
+    if data_dim <= 0:
+        raise ValueError("input size must include at least one data dimension")
+
+    autoregressive_layer_sizes = [data_dim, *layer_sizes[1:]]
+    masks = make_made_masks(autoregressive_layer_sizes, generator)
+
+    # Allow label inputs to reach every first hidden unit without changing the
+    # autoregressive degrees of the data inputs.
+    label_mask = torch.ones(masks[0].size(0), num_classes, dtype=masks[0].dtype)
+    masks[0] = torch.cat([masks[0], label_mask], dim=1)
     return masks

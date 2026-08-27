@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 
-from mattg.models.factory import ModelFactory
+from mattg.conditioner import NoConditioner
+from mattg.models.factory import ModelFactory, ModelBundle
 from mattg.models.utils.masks import make_nade_masks
 from mattg.models.masked_linear import MaskedLinear
 
@@ -27,8 +28,12 @@ class NADEFactory(ModelFactory):
         self.n_visible = n_visible
         self.n_hidden = n_hidden
 
-    def _create(self):
-        return NADE(self.n_visible, self.n_hidden), []
+    def _create(self, data_spec=None):
+        return ModelBundle(
+            model=NADE(self.n_visible, self.n_hidden),
+            conditioner=NoConditioner(),
+            callbacks=[]
+        )
 
     def _metadata(self):
         n_out = self.n_visible

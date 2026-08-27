@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 import re
 from typing import Any
 
@@ -91,10 +92,14 @@ def find_sample_images(run: Path) -> list[dict[str, Any]]:
         if not match:
             continue
 
+        metric_epoch = int(match.group(1))
+
         samples.append(
             {
-                "epoch": int(match.group(1)),
+                "epoch": metric_epoch + 1,
+                "metric_epoch": metric_epoch,
                 "filename": path.name,
+                **read_sample_metadata(path),
             }
         )
 
@@ -102,6 +107,17 @@ def find_sample_images(run: Path) -> list[dict[str, Any]]:
         samples,
         key=lambda x: x["epoch"],
     )
+
+
+def read_sample_metadata(path: Path) -> dict[str, Any]:
+    metadata_path = path.with_suffix(".json")
+    if not metadata_path.exists():
+        return {}
+
+    try:
+        return json.loads(metadata_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
 
 
 def copy_plots(

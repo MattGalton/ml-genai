@@ -1,0 +1,6 @@
+name: MADE
+target:
+  _target_: mattg.models.ConditionalMADEFactory
+  layer_sizes: [784, 392, 392, 784]
+  seed: 42
+  mask_update_frequency: 10

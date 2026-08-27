@@ -15,19 +15,27 @@ def train_binary_autoregressive(hydra_config_path: Path):
         config_path=str(hydra_config_path.absolute()), config_name="config", version_base="1.1"
     )
     def _train(cfg: DictConfig):
+        train_loader, val_loader, data_spec = DatasetLoader.load(cfg.dataset)
+
         model_factory = ModelFactoryLoader.load(cfg.model)
-        model, model_callbacks = model_factory.create()
+        model_bundle = model_factory.create(data_spec)
 
-        task = BinaryAutoRegressiveTask(cfg, model)
-
-        train_loader, val_loader = DatasetLoader.load(cfg.dataset)
+        task = BinaryAutoRegressiveTask(
+            cfg=cfg,
+            model=model_bundle.model,
+            data_spec=data_spec,
+            conditioner=model_bundle.conditioner,
+        )
 
         logger = CSVLogger(save_dir=Path.cwd(), name="", version="")
 
-        callbacks = model_callbacks
+        callbacks = list(model_bundle.callbacks)
         if "callbacks" in cfg.trainer:
             for callback_cfg in cfg.trainer.callbacks:
-                callbacks.append(instantiate(callback_cfg))
+                callback = instantiate(callback_cfg)
+                if hasattr(callback, "cfg") and callback.cfg is None:
+                    callback.cfg = cfg
+                callbacks.append(callback)
 
         trainer = instantiate(cfg.trainer, logger=logger, callbacks=callbacks)
 

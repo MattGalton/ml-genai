@@ -1,10 +1,7 @@
 from dataclasses import dataclass
-from typing import Tuple, List
 
 from hydra.utils import instantiate
-import lightning as L
 from omegaconf import MISSING
-import torch.nn as nn
 
 
 @dataclass
@@ -23,8 +20,14 @@ class ModelFactoryLoader:
             return obj
 
         class Factory(ModelFactory):
-            def create(self) -> Tuple[nn.Module, List[L.Callback]]:
-                return obj, []
+            def _create(self, data_spec=None):
+                from mattg.conditioner import NoConditioner
+                from mattg.models.factory import ModelBundle
+
+                return ModelBundle(
+                    model=obj,
+                    conditioner=NoConditioner(),
+                    callbacks=[],
+                )
 
         return Factory()
-

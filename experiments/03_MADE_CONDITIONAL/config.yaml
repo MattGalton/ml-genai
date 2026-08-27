@@ -1,6 +1,6 @@
 defaults:
   - /train/default@_global_
-  - override /model: made
+  - override /model: made_conditional
   - override /optimizer: adam
   - override /dataset: bmnist
   - _self_
@@ -8,11 +8,11 @@ defaults:
 model:
   target:
     layer_sizes: [784, 2048, 2048, 784]
-    mask_update_frequency: 3
+    mask_update_frequency: 10
 optimizer:
   lr: 0.001
 trainer:
-  max_epochs: 249
+  max_epochs: 29
   callbacks:
     - _target_: lightning.pytorch.callbacks.ModelCheckpoint
       dirpath: checkpoints
@@ -29,4 +29,5 @@ trainer:
         _target_: mattg.sampling.AncestralSampler
       sample_every_n_epochs: 1
       output_dir: samples
-      num_samples: 48
+      num_samples: 80
+      samples_per_label: 8

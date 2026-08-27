@@ -5,7 +5,7 @@ from typing import Any
 import markdown
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from .vars import EXPERIMENTS_DIR, TEMPLATES_DIR, display_name
+from .vars import TEMPLATES_DIR, display_name
 
 
 def format_result_value(value: Any) -> str:
@@ -47,10 +47,14 @@ def render_readme(readme_path: Path) -> str:
     if not readme_path.exists():
         return ""
 
-    markdown_text = readme_path.read_text(
-        encoding="utf-8"
+    return render_markdown(
+        readme_path.read_text(
+            encoding="utf-8"
+        )
     )
 
+
+def render_markdown(markdown_text: str) -> str:
     return markdown.markdown(
         markdown_text,
         extensions=[
@@ -72,9 +76,7 @@ def generate_index_html(
 
     title = display_name(experiment)
 
-    custom_html = render_readme(
-        EXPERIMENTS_DIR / experiment / "README.md"
-    )
+    custom_html = render_markdown(custom_readme) if custom_readme else ""
 
     curves = []
 

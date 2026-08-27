@@ -1,10 +1,11 @@
 """Base Lightning module template for all tasks."""
+from abc import ABC, abstractmethod
 
 from lightning import LightningModule
 from omegaconf import DictConfig
 
 
-class BaseTask(LightningModule):
+class BaseTask(LightningModule, ABC):
     """Template for all tasks. Subclass and override as needed."""
 
     def __init__(self, cfg: DictConfig):
@@ -12,14 +13,14 @@ class BaseTask(LightningModule):
         self.save_hyperparameters(cfg)
         self.cfg = cfg
 
+    @abstractmethod
     def configure_optimizers(self):
-        """Override in subclass."""
-        raise NotImplementedError
-
+        ...
+    
+    @abstractmethod
     def training_step(self, batch, batch_idx):
-        """Override in subclass."""
-        raise NotImplementedError
-
+        ...
+    
     def validation_step(self, batch, batch_idx):
-        """Override in subclass. Optional."""
+        """Optional step for validation"""
         pass

@@ -2,6 +2,13 @@ defaults:
   - /dataset/dataloader@train.loader: default
   - /dataset/dataloader@val.loader: default
 
+data_spec:
+  _target_: mattg.datasets.DataSpec
+  data_dim: 784
+  num_classes: 10
+  name: Binarized MNIST
+  shape: [1, 28, 28]
+
 train:
   name: BMNIST
   dataset:

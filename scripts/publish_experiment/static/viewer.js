@@ -19,6 +19,25 @@ const epochMetrics =
     );
 
 
+function formatLabels(labels) {
+
+    if (!labels || !labels.length) {
+        return "";
+    }
+
+    const uniqueLabels =
+        Array.from(
+            new Set(labels)
+        );
+
+    if (uniqueLabels.length === 1) {
+        return "label " + uniqueLabels[0];
+    }
+
+    return "labels " + uniqueLabels.join(", ");
+}
+
+
 function formatValue(value) {
 
     if (
@@ -118,7 +137,7 @@ function updateViewer() {
     ];
 
 
-    epochMetrics.textContent =
+    const metricText =
         fields
             .filter(
                 ([key]) =>
@@ -130,6 +149,14 @@ function updateViewer() {
                     " " +
                     formatValue(row[key])
             )
+            .join(" · ");
+
+    const labelText =
+        formatLabels(sample.labels);
+
+    epochMetrics.textContent =
+        [labelText, metricText]
+            .filter(Boolean)
             .join(" · ");
 }
 
