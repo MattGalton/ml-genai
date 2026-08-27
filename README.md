@@ -85,3 +85,12 @@ generated before it.
 **[→ View the report](https://huggingface.co/spaces/MattGalton/ml-genai-02-nade)**
 
 ![Generated Samples for FVSBN model](./docs/images/02_NADE_preview.png)
+
+## 03 Masked Autoencoder for  Density Estimation (MADE)
+
+
+## 04 (Conditional) Masked Autoencoder for  Density Estimation (MADE)
+
+**[→ View the report](https://huggingface.co/spaces/MattGalton/ml-genai-04-made-conditional)**
+
+![Generated Samples for FVSBN model](./docs/images/04_MADE_CONDITIONAL_preview.png)
