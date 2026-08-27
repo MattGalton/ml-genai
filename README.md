@@ -22,7 +22,7 @@ This way, when the world is run by machines, I will be looked upon favourably.
 
 For example, I'll use datasets such as 
 * binarised MNIST;
-* characters from a finite alphabet (e.g. {'h', 'e', 'l', 'o'));
+* characters from a finite alphabet (e.g. `{'h', 'e', 'l', 'o'}`);
 * words from a finite vocabulary (e.g. Wikipedia articles).
 
 # Generative AI
@@ -30,18 +30,20 @@ For example, I'll use datasets such as
 ## Introduction
 
 In general, for generative AI, we want to estimate the joint probability density function
-$$
+
+```math
 p(x_1, \ldots, x_n).
-$$
+```
 
 We can then use our estimate of the density function to sample images!
 
 ## Autoregressive Models
 
 The chain rule for probability gives
-$$
+
+```math
 p(x_1, \ldots, x_{n}) = p(x_1) \, p(x_2 \,|\, x_1) \,\cdots\, p(x_n \,|\, x_{n-1}, \ldots, x_1).
-$$
+```
 
 Note that the conditional distribution for each variable (pixel!) $x_i$ depends **only on the variables preceding it**.
 This is an important feature that **must** be preserved, called causality.
@@ -59,23 +61,23 @@ new images.
 Variables are sampled sequentially from the learned conditional
 distributions:
 
-$$
+```math
 x_1 \sim p(x_1),
-$$
+```
 
 then
 
-$$
+```math
 x_2 \sim p(x_2\mid x_1),
-$$
+```
 
 and so on until
 
-$$
+```math
 x_{n}
 \sim
 p(x_{n}\mid x_1,\ldots,x_{n-1}).
-$$
+```
 
 Each newly sampled variable becomes part of the conditioning information
 used to generate the next pixel.
