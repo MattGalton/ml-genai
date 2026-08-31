@@ -7,6 +7,22 @@ along with papers and other resources as I go.
 
 Please note that my focus is on understanding how the models work, rather than optimising for state-of-the-art sample quality!
 
+| Status | Topic                              | Report                                                                             |
+|--------|------------------------------------|------------------------------------------------------------------------------------|
+| ✅      | FVSBN                              | [Hugging Face](https://huggingface.co/spaces/MattGalton/ml-genai-01-fvsbn)         |
+| ✅      | NADE                               | [Hugging Face](https://huggingface.co/spaces/MattGalton/ml-genai-02-nade)          |
+|        | MADE                               |                                                                                    |
+| ✅      | Conditional MADE                   | [Hugging Face](https://huggingface.co/spaces/MattGalton/ml-genai-04-made-conditional) |
+|        | Vanilla RNN                        | |
+|        | VAEs                               | |
+|        | Normalising Flows                  | |
+|        | GANs                               | |
+|        | Energy-based models                | |
+|        | Score-based models                 | |
+|        | Score-based diffusion models       | |
+|        | Discrete latent variable models    | |
+|        | Diffusion models for discrete data | |
+
 ## Technologies Used
 
 * PyTorch;
@@ -94,23 +110,40 @@ A simple autoregressive neural density estimator.
 
 **[→ View the report](https://huggingface.co/spaces/MattGalton/ml-genai-01-fvsbn)**
 
-![Generated Samples for FVSBN model](./docs/images/01_FVSBN_preview.png)
+<img alt="" src="./docs/images/01_FVSBN_preview.png" width="400">
 
 ## 02 Neural Autoregressive Density Estimation (NADE)
 
-n implementation of NADE, 
+An implementation of NADE, 
 which introduces parameter sharing to make autoregressive 
 density estimation more efficient.
 
 **[→ View the report](https://huggingface.co/spaces/MattGalton/ml-genai-02-nade)**
 
-![Generated Samples for FVSBN model](./docs/images/02_NADE_preview.png)
+<img alt="" src="./docs/images/02_NADE_preview.png" width="400">
 
 ## 03 Masked Autoencoder for  Density Estimation (MADE)
+
+MADE assigns degrees randomly to nodes, enforcing causality by restricting what
+degrees are allowed for downstream nodes in the hidden and output layers.
+
+Re-initialising the mask periodically encourages the whole network to learn the structure of the data.
 
 
 ## 04 (Conditional) Masked Autoencoder for  Density Estimation (MADE)
 
+Given a data point $x$ and its label $y$, we estimate the conditional density $p(x \, | \, y)$.
+Conditioning on $y$ allows us to estimate a different distribution over $x$ for each class.
+
+If we want to sample from the full joint distribution, we can use 
+```math
+p(x, y) = p(x\, | \, y) p(y)
+```
+and sample $\tilde y \sim p(y)$, then $\tilde x \sim p(x \, | \, \tilde y)$.
+
+Appending a one-hot label to the end of the input and allowing it to fully connect to nodes in the next layer lets us
+generate samples given a label.
+
 **[→ View the report](https://huggingface.co/spaces/MattGalton/ml-genai-04-made-conditional)**
 
-![Generated Samples for FVSBN model](./docs/images/04_MADE_CONDITIONAL_preview.png)
+<img alt="" src="./docs/images/04_MADE_CONDITIONAL_preview.png" width="400">
